@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /investigations
+Sitemap: https://glazehour.space/sitemap.xml

@@ -1,0 +1,49 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-ink-950: #070b14;
+  --color-ink-900: #0b1220;
+  --color-ink-800: #121b2d;
+  --color-ink-700: #1c273d;
+  --color-ink-600: #2a3752;
+  --color-graphite-500: #5b6475;
+  --color-graphite-400: #7f8899;
+  --color-graphite-300: #a9b0bd;
+  --color-mist-200: #dde2ea;
+  --color-mist-100: #eef1f5;
+  --color-mist-50: #f6f8fb;
+  --color-signal-600: #0d9488;
+  --color-signal-500: #14b8a6;
+  --color-signal-400: #2dd4bf;
+  --color-volt-600: #2563eb;
+  --color-volt-500: #3b82f6;
+  --color-amberish: #b45309;
+  --color-fault: #b91c1c;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-mist-50 text-ink-900 font-sans antialiased; }
+  :focus-visible { outline: 2px solid var(--color-volt-500); outline-offset: 2px; }
+}
+
+@utility tech-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@utility tech-grid-light {
+  background-image:
+    linear-gradient(to right, rgb(11 18 32 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(11 18 32 / 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@utility eyebrow {
+  @apply font-mono text-[11px] uppercase tracking-[0.18em];
+}
