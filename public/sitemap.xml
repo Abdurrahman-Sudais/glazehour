@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://glazehour.space/</loc></url>
-  <url><loc>https://glazehour.space/product</loc></url>
-  <url><loc>https://glazehour.space/defect-investigation</loc></url>
-  <url><loc>https://glazehour.space/quality-workflows</loc></url>
-  <url><loc>https://glazehour.space/how-it-works</loc></url>
-  <url><loc>https://glazehour.space/pricing</loc></url>
-  <url><loc>https://glazehour.space/about</loc></url>
-  <url><loc>https://glazehour.space/contact</loc></url>
+  <url><loc>https://glazehour.space/</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/product</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/defect-investigation</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/quality-workflows</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/how-it-works</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/pricing</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/about</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/contact</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/technology</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/security</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/privacy</loc><lastmod>2026-11-02</lastmod></url>
+  <url><loc>https://glazehour.space/terms</loc><lastmod>2026-11-02</lastmod></url>
 </urlset>

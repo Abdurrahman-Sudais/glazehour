@@ -1,6 +1,6 @@
 # Glazehour
 
-**Connect the defect to the evidence.** Marketing site and interactive demonstration workspace for Glazehour, an AI-assisted coating-defect investigation and quality-management platform (glazehour.space, founder Safiya Abdullahi, safiya@glazehour.space).
+**Connect the defect to the evidence.** Marketing site and interactive demonstration workspace for Glazehour, an AI-assisted coating-defect investigation and quality-management platform (glazehour.space, safiya@glazehour.space). Founded by Safiya Abdullahi (Founder/CEO) and Yusuf Abdulhamid (Co-founder/CTO).
 
 Built with Vite, React 18, TypeScript, Tailwind CSS v4, React Router 6 and Lucide React. It has no backend and calls no external APIs.
 
@@ -13,7 +13,17 @@ npm run build    # type-check + production build to dist/
 npm test         # rules-engine unit tests (Vitest)
 ```
 
-The app uses client-side routing. When you deploy it, configure the host to serve `index.html` for every path (SPA fallback).
+## Deploying
+
+`npm run build` produces a static site in `dist/`. Ready-made host configs are included: `public/_redirects` + `public/_headers` (Netlify / Cloudflare Pages) and `vercel.json` (Vercel) set the SPA fallback, security headers and long-lived caching for hashed assets. Every route except the home page is lazy-loaded.
+
+Optional: copy `.env.example` to `.env.local` and set the `VITE_HUBSPOT_*` variables so early-access requests reach HubSpot. Without them the form saves requests in the visitor's browser and offers a pre-filled email.
+
+### Content to confirm before launch
+
+- **Founders:** `FOUNDERS` in `src/data/site.ts`.
+- **Industry statistics** (`PROBLEM_STATS` in `src/pages/Home.tsx`) cite the NACE IMPACT study (via Inspectioneering) and the Weston failure analyses (via an AMPP sample). Check each against its source.
+- **Roadmap, pricing, FAQ, privacy notice and terms** are drafts to keep in step with what you offer.
 
 ## Routes
 
@@ -21,8 +31,10 @@ The app uses client-side routing. When you deploy it, configure the host to serv
 |---|---|
 | `/` | Home |
 | `/product`, `/defect-investigation`, `/quality-workflows`, `/how-it-works` | Platform pages |
-| `/pricing`, `/about`, `/contact` | Company pages (contact form is validated; submissions are kept in localStorage only) |
-| `/investigations` | Demo workspace: Overview, Jobs, Defect Library (+ similar-case groups), Investigations, Specifications, Reports, Team, Settings |
+| `/pricing`, `/about` | Pricing; founding team, story, principles and roadmap |
+| `/contact` | Early-access form (HubSpot when configured, otherwise local save + mailto) |
+| `/technology`, `/security`, `/privacy`, `/terms` | Proposed AWS architecture; safeguards; review-draft legal pages |
+| `/investigations` | Demo workspace: Overview (with assistant), Jobs, Defect Library (+ similar-case groups), Investigations, Specifications, Reports, Team, Audit & roles, Settings |
 
 ## Structure
 
@@ -54,6 +66,8 @@ src/workspace/    Workspace views
 - **Similar-defect grouping**: the groups are pre-defined in the seed data. No vision model runs.
 - **Evidence suggestions**: these are deterministic prompts derived from missing readings and failed rules, labelled as AI. They never name a cause or prescribe a corrective process.
 - **Defect photographs and industrial imagery**: procedurally generated SVG, marked "Demo image". Both `DefectImage` and `Scene` accept a `src` prop for real photography.
-- **Instruments, data loggers, ERP, email, auth and permissions**: none are integrated. Measurements are typed in by hand, and the contact form sends nothing.
+- **Instruments, data loggers, ERP, email and auth**: none are integrated. Measurements are typed in by hand.
+- **Roles and audit**: “Demo as” switches between fictional people; every change is checked against a role matrix (`src/domain/access.ts`) and written to an audit log. Production would enforce roles on the server.
+- **Assistant** (“Ask about this facility”, `src/domain/assistant.ts`): deterministic intent routing over the demo records; it cites the records used and refuses to name causes, prescribe fixes or accept work.
 
 Use **Settings → Reset demo data** to restore the original records.

@@ -106,7 +106,7 @@ export default function Jobs() {
 }
 
 function JobDetail({ id, onClose, team }: { id: string; onClose: () => void; team: ReturnType<typeof useStore>['team'] }) {
-  const { state, updateMeasurements, setJobStatus, setJobInvestigator } = useStore();
+  const { state, updateMeasurements, setJobStatus, setJobInvestigator, can } = useStore();
   const [editing, setEditing] = useState(false);
   const job = state.jobs.find((j) => j.id === id);
   if (!job) return <Panel title="Job not found"><p className="text-sm">No job with ID {id}.</p></Panel>;
@@ -139,14 +139,14 @@ function JobDetail({ id, onClose, team }: { id: string; onClose: () => void; tea
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div>
             <label htmlFor={`inv-${job.id}`} className="text-[11px] text-graphite-500">Assigned investigator</label>
-            <select id={`inv-${job.id}`} className={cx(inputCls, 'mt-1')} value={job.investigatorId ?? ''} onChange={(e) => setJobInvestigator(job.id, e.target.value || null)}>
+            <select id={`inv-${job.id}`} disabled={!can('assign')} className={cx(inputCls, 'mt-1 disabled:cursor-not-allowed disabled:opacity-60')} value={job.investigatorId ?? ''} onChange={(e) => setJobInvestigator(job.id, e.target.value || null)}>
               <option value="">Unassigned</option>
               {team.map((t) => <option key={t.id} value={t.id}>{t.name} — {t.role}</option>)}
             </select>
           </div>
           <div>
             <label htmlFor={`st-${job.id}`} className="text-[11px] text-graphite-500">Job status</label>
-            <select id={`st-${job.id}`} className={cx(inputCls, 'mt-1')} value={job.status} onChange={(e) => setJobStatus(job.id, e.target.value as JobStatus)}>
+            <select id={`st-${job.id}`} disabled={!can('jobStatus')} className={cx(inputCls, 'mt-1 disabled:cursor-not-allowed disabled:opacity-60')} value={job.status} onChange={(e) => setJobStatus(job.id, e.target.value as JobStatus)}>
               {Object.entries(JOB_STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
@@ -155,7 +155,7 @@ function JobDetail({ id, onClose, team }: { id: string; onClose: () => void; tea
 
       <Panel
         title="Process measurements"
-        actions={!editing && <Button variant="secondary" className="px-2.5 py-1 text-xs" onClick={() => setEditing(true)}><Pencil size={13} /> Edit</Button>}
+        actions={!editing && <Button variant="secondary" className="px-2.5 py-1 text-xs" disabled={!can('measurements')} title={can('measurements') ? undefined : 'Your role cannot record measurements'} onClick={() => setEditing(true)}><Pencil size={13} /> Edit</Button>}
       >
         {editing ? (
           <MeasurementEditor job={job} onCancel={() => setEditing(false)} onSave={(m) => { updateMeasurements(job.id, m); setEditing(false); }} />

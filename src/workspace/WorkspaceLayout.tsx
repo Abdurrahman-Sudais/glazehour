@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { BarChart3, ClipboardList, FolderKanban, Images, LayoutDashboard, Menu, Ruler, Settings, Users, X } from 'lucide-react';
+import { BarChart3, ClipboardList, FolderKanban, Images, LayoutDashboard, Lock, Menu, Ruler, Settings, Users, X } from 'lucide-react';
+import { ROLE_LABEL, roleOf } from '../domain/access';
 import { Logo } from '../components/SiteLayout';
 import { cx } from '../components/ui';
 import { useStore } from '../state/store';
@@ -13,13 +14,14 @@ const ITEMS = [
   { to: '/investigations/specifications', label: 'Specifications', icon: Ruler },
   { to: '/investigations/reports', label: 'Reports', icon: BarChart3 },
   { to: '/investigations/team', label: 'Team', icon: Users },
+  { to: '/investigations/audit', label: 'Audit & roles', icon: Lock },
   { to: '/investigations/settings', label: 'Settings', icon: Settings },
 ];
 
 export function WorkspaceLayout() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
-  const { user } = useStore();
+  const { user, team, setUser } = useStore();
   useEffect(() => setOpen(false), [pathname]);
 
   const nav = (
@@ -49,13 +51,13 @@ export function WorkspaceLayout() {
         <p className="eyebrow px-5 pb-2 text-graphite-500">Halvard Street (demo)</p>
         {nav}
         <div className="mt-auto border-t border-ink-700 p-4">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-700 font-mono text-xs text-mist-100">{user.initials}</span>
-            <div>
-              <p className="text-xs text-white">{user.name}</p>
-              <p className="text-[11px] text-graphite-400">{user.role}</p>
-            </div>
-          </div>
+          <label htmlFor="demo-as" className="mb-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-graphite-400">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-signal-500 text-[9px] text-ink-950" aria-hidden>{user.initials}</span>
+            Demo as
+          </label>
+          <select id="demo-as" aria-label="Demo as user" className="w-full rounded-md border border-ink-600 bg-ink-800 px-2 py-1.5 text-xs text-white focus:border-signal-500 focus:outline-none" value={user.id} onChange={(e) => setUser(e.target.value)}>
+            {team.map((m) => <option key={m.id} value={m.id}>{m.name} · {ROLE_LABEL[roleOf(m.id)]}</option>)}
+          </select>
           <Link to="/" className="mt-4 block text-[11px] text-graphite-400 hover:text-white">← Back to glazehour.space</Link>
         </div>
       </aside>

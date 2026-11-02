@@ -1,3 +1,4 @@
+import { AssistantPanel } from './AssistantPanel';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, Bot } from 'lucide-react';
 import { DefectImage } from '../components/Imagery';
@@ -41,6 +42,9 @@ export default function Overview() {
         ))}
       </div>
 
+      <div className="mt-6">
+        <AssistantPanel />
+      </div>
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Panel title="Active investigations" className="xl:col-span-2" actions={<Link to="/investigations/cases" className="text-xs text-volt-600 hover:underline">View all</Link>}>
           <ul className="divide-y divide-mist-100">

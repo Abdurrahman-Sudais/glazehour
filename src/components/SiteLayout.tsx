@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import { cx } from './ui';
+import { useRevealOnScroll } from '../lib/motion';
+import { FOUNDERS, SITE } from '../data/site';
 
 export const NAV = [
-  { to: '/product', label: 'Product' },
-  { to: '/defect-investigation', label: 'Defect Investigation' },
-  { to: '/quality-workflows', label: 'Quality Workflows' },
+  { to: '/#problem', label: 'Problem' },
+  { to: '/product', label: 'Platform' },
   { to: '/how-it-works', label: 'How It Works' },
+  { to: '/technology', label: 'Technology' },
   { to: '/pricing', label: 'Pricing' },
-  { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
+  { to: '/about', label: 'Team' },
+  { to: '/security', label: 'Security' },
 ];
 
 export function Logo({ dark = false }: { dark?: boolean }) {
@@ -27,18 +29,40 @@ export function Logo({ dark = false }: { dark?: boolean }) {
 
 export function SiteLayout() {
   const [open, setOpen] = useState(false);
-  const { pathname } = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  const { pathname, hash } = useLocation();
+  useRevealOnScroll(pathname);
   useEffect(() => {
     setOpen(false);
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    if (!hash) {
+      window.scrollTo(0, 0);
+      return;
+    }
+    let tries = 0;
+    let t = 0;
+    const find = () => {
+      const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+      if (el) {
+        el.scrollIntoView();
+        t = window.setTimeout(() => el.scrollIntoView(), 450);
+      } else if (tries++ < 40) t = window.setTimeout(find, 50);
+    };
+    find();
+    return () => window.clearTimeout(t);
+  }, [pathname, hash]);
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 8);
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">
         Skip to content
       </a>
-      <header className="sticky top-0 z-40 border-b border-ink-700 bg-ink-900/95 backdrop-blur">
+      <header className={cx('sticky top-0 z-40 border-b backdrop-blur transition-all duration-300', scrolled ? 'border-ink-700 bg-ink-900/95 shadow-lg shadow-black/30' : 'border-transparent bg-ink-900/70')}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Logo dark />
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
@@ -46,15 +70,23 @@ export function SiteLayout() {
               <NavLink
                 key={n.to}
                 to={n.to}
-                className={({ isActive }) => cx('rounded px-2.5 py-1.5 text-[13px] transition-colors', isActive ? 'text-white' : 'text-graphite-300 hover:text-white')}
+                className={({ isActive }) =>
+                  cx(
+                    'relative rounded px-2.5 py-1.5 text-[13px] transition-colors after:absolute after:inset-x-2.5 after:-bottom-0.5 after:h-px after:origin-left after:bg-signal-400 after:transition-transform',
+                    isActive && !n.to.includes('#') ? 'text-white after:scale-x-100' : 'text-graphite-300 after:scale-x-0 hover:text-white hover:after:scale-x-100',
+                  )
+                }
               >
                 {n.label}
               </NavLink>
             ))}
           </nav>
-          <div className="hidden lg:block">
-            <Link to="/investigations" className="rounded-md bg-signal-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-signal-500">
-              Open demo workspace
+          <div className="hidden items-center gap-2 lg:flex">
+            <Link to="/investigations" className="rounded-md px-3 py-2 text-[13px] text-graphite-300 hover:text-white">
+              Live demo
+            </Link>
+            <Link to="/contact" className="inline-flex items-center gap-1.5 rounded-md bg-signal-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-signal-500">
+              Request early access <ArrowRight size={14} />
             </Link>
           </div>
           <button className="rounded p-2 text-mist-100 lg:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
@@ -68,8 +100,11 @@ export function SiteLayout() {
                 {n.label}
               </NavLink>
             ))}
-            <Link to="/investigations" className="mt-4 block rounded-md bg-signal-600 px-3 py-2.5 text-center text-sm font-medium text-white">
-              Open demo workspace
+            <Link to="/contact" className="mt-4 block rounded-md bg-signal-600 px-3 py-2.5 text-center text-sm font-medium text-white">
+              Request early access
+            </Link>
+            <Link to="/investigations" className="mt-2 block rounded-md border border-ink-600 px-3 py-2.5 text-center text-sm font-medium text-white">
+              Explore the live demo
             </Link>
           </nav>
         )}
@@ -83,38 +118,45 @@ export function SiteLayout() {
 }
 
 function Footer() {
+  const cols: [string, [string, string][]][] = [
+    ['Platform', [['/product', 'Platform overview'], ['/defect-investigation', 'Defect investigation'], ['/quality-workflows', 'Quality workflows'], ['/investigations', 'Live demo'], ['/pricing', 'Pricing']]],
+    ['Solutions', [['/#problem', 'Problems we solve'], ['/#who', 'Who it’s for'], ['/#compare', 'Why Glazehour'], ['/how-it-works', 'How it works'], ['/#roadmap', 'Roadmap']]],
+    ['Company', [['/about', 'About & team'], ['/technology', 'Technology (AWS)'], ['/security', 'Security & safeguards'], ['/contact', 'Request early access'], ['/#faq', 'FAQ']]],
+    ['Legal', [['/privacy', 'Privacy notice'], ['/terms', 'Terms of use']]],
+  ];
   return (
-    <footer className="border-t border-ink-700 bg-ink-950 text-graphite-300">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
-        <div className="md:col-span-2">
+    <footer className="relative overflow-hidden border-t border-ink-700 bg-ink-950 text-graphite-300">
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[48rem] -translate-x-1/2 rounded-full bg-signal-500/10 blur-3xl" aria-hidden />
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_0.8fr]">
+        <div>
           <Logo dark />
           <p className="mt-4 max-w-sm text-sm">Connect the defect to the evidence. Investigation and quality-management software for industrial coating teams.</p>
-          <p className="mt-6 font-mono text-xs text-graphite-400">
-            glazehour.space · <a className="hover:text-white" href="mailto:safiya@glazehour.space">safiya@glazehour.space</a>
-          </p>
+          <a className="mt-4 inline-block font-mono text-xs text-signal-400 hover:text-white" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-ink-700 bg-ink-900 px-3 py-1.5 text-xs text-graphite-300">
+            <span className="live-dot" aria-hidden /> Early access open · pilots on one coating line
+          </div>
         </div>
-        <div>
-          <p className="eyebrow text-graphite-400">Platform</p>
-          <ul className="mt-3 space-y-2 text-sm">
-            {NAV.slice(0, 4).map((n) => (
-              <li key={n.to}><Link className="hover:text-white" to={n.to}>{n.label}</Link></li>
-            ))}
-            <li><Link className="hover:text-white" to="/investigations">Demo workspace</Link></li>
-          </ul>
-        </div>
-        <div>
-          <p className="eyebrow text-graphite-400">Company</p>
-          <ul className="mt-3 space-y-2 text-sm">
-            {NAV.slice(4).map((n) => (
-              <li key={n.to}><Link className="hover:text-white" to={n.to}>{n.label}</Link></li>
-            ))}
-          </ul>
-        </div>
+        {cols.map(([title, links]) => (
+          <div key={title}>
+            <p className="eyebrow text-graphite-400">{title}</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {links.map(([to, label]) => (
+                <li key={to}><Link className="hover:text-white" to={to}>{label}</Link></li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
-      <div className="border-t border-ink-800">
-        <p className="mx-auto max-w-7xl px-4 py-5 text-xs text-graphite-400 sm:px-6">
-          © {new Date().getFullYear()} Glazehour. Glazehour supports investigation; it does not diagnose defects or replace qualified coating inspectors, product data sheets or applicable standards.
-        </p>
+      <div className="relative border-t border-ink-800">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-graphite-400 sm:px-6 md:flex-row md:items-center md:justify-between">
+          <span>
+            © {new Date().getFullYear()} Glazehour · Founded by{' '}
+            {FOUNDERS.map((f, i) => (
+              <span key={f.name}>{i > 0 && ' & '}<Link to="/about#team" className="text-graphite-300 hover:text-white">{f.name}</Link></span>
+            ))}
+          </span>
+          <span>Glazehour supports investigation; it does not diagnose defects or replace qualified coating inspectors.</span>
+        </div>
       </div>
     </footer>
   );
