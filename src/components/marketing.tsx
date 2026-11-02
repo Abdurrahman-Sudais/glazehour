@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+
+const d = (ms: number) => ({ '--d': `${ms}ms` }) as CSSProperties;
 import { AlertTriangle, ArrowRight, Link2 } from 'lucide-react';
 import { DefectImage } from './Imagery';
 import { ButtonLink, InvStatus, KindTag, cx } from './ui';
@@ -8,11 +10,12 @@ import { MEASUREMENT_META, evaluateSpecification } from '../domain/rules';
 export function PageHero({ eyebrow, title, intro, children }: { eyebrow: string; title: string; intro: string; children?: ReactNode }) {
   return (
     <section className="tech-grid relative overflow-hidden bg-ink-900 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 md:py-24">
-        <p className="eyebrow text-signal-400">{eyebrow}</p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight md:text-5xl">{title}</h1>
-        <p className="mt-6 max-w-2xl text-lg text-graphite-300">{intro}</p>
-        {children && <div className="mt-8">{children}</div>}
+      <div className="hero-glow pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-signal-500/15 blur-3xl" aria-hidden />
+      <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 md:py-24">
+        <p className="eyebrow reveal text-signal-400">{eyebrow}</p>
+        <h1 className="reveal mt-4 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight md:text-5xl" style={d(80)}>{title}</h1>
+        <p className="reveal mt-6 max-w-2xl text-lg text-graphite-300" style={d(160)}>{intro}</p>
+        {children && <div className="reveal mt-8" style={d(240)}>{children}</div>}
       </div>
     </section>
   );
@@ -22,12 +25,17 @@ export function Section({ id, eyebrow, title, intro, children, tone = 'light' }:
   return (
     <section id={id} className={cx(tone === 'dark' ? 'tech-grid bg-ink-900 text-white' : tone === 'white' ? 'bg-white' : 'bg-mist-50')} aria-labelledby={id ? `${id}-title` : undefined}>
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-        {eyebrow && <p className={cx('eyebrow', tone === 'dark' ? 'text-signal-400' : 'text-signal-600')}>{eyebrow}</p>}
-        <h2 id={id ? `${id}-title` : undefined} className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight md:text-[2.1rem] md:leading-tight">
+        {eyebrow && (
+          <p className={cx('eyebrow reveal flex items-center gap-2', tone === 'dark' ? 'text-signal-400' : 'text-signal-600')}>
+            <span className={cx('h-px w-6', tone === 'dark' ? 'bg-signal-400' : 'bg-signal-600')} aria-hidden />
+            {eyebrow}
+          </p>
+        )}
+        <h2 id={id ? `${id}-title` : undefined} className="reveal mt-3 max-w-3xl text-3xl font-semibold tracking-tight md:text-[2.1rem] md:leading-tight" style={d(60)}>
           {title}
         </h2>
-        {intro && <div className={cx('mt-4 max-w-2xl text-base leading-relaxed', tone === 'dark' ? 'text-graphite-300' : 'text-graphite-500')}>{intro}</div>}
-        {children && <div className="mt-12">{children}</div>}
+        {intro && <div className={cx('reveal mt-4 max-w-2xl text-base leading-relaxed', tone === 'dark' ? 'text-graphite-300' : 'text-graphite-500')} style={d(120)}>{intro}</div>}
+        {children && <div className="reveal mt-12" style={d(160)}>{children}</div>}
       </div>
     </section>
   );
@@ -35,18 +43,19 @@ export function Section({ id, eyebrow, title, intro, children, tone = 'light' }:
 
 export function CtaBand({ title, text }: { title: string; text: string }) {
   return (
-    <section className="tech-grid bg-ink-950 text-white">
-      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-20 sm:px-6 md:flex-row md:items-center">
+    <section className="tech-grid relative overflow-hidden bg-ink-950 text-white">
+      <div className="hero-glow pointer-events-none absolute left-1/4 top-0 h-72 w-[36rem] rounded-full bg-signal-500/10 blur-3xl" aria-hidden />
+      <div className="reveal relative mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-20 sm:px-6 md:flex-row md:items-center">
         <div>
           <h2 className="max-w-2xl text-3xl font-semibold tracking-tight md:text-4xl">{title}</h2>
           <p className="mt-4 max-w-xl text-graphite-300">{text}</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <ButtonLink to="/investigations">
-            Explore the Investigation Workspace <ArrowRight size={16} />
+          <ButtonLink to="/contact">
+            Request early access <ArrowRight size={16} />
           </ButtonLink>
-          <ButtonLink to="/contact" variant="dark">
-            Talk to us
+          <ButtonLink to="/investigations" variant="dark">
+            Explore the live demo
           </ButtonLink>
         </div>
       </div>
@@ -135,7 +144,7 @@ export function ProductPreview() {
 
 export function FeatureCard({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-mist-200 bg-white p-6">
+    <div className="reveal lift spot rounded-lg border border-mist-200 bg-white p-6">
       <div className="flex h-9 w-9 items-center justify-center rounded-md border border-mist-200 bg-mist-50 text-signal-600">{icon}</div>
       <h3 className="mt-4 text-base font-semibold">{title}</h3>
       <div className="mt-2 text-sm leading-relaxed text-graphite-500">{children}</div>

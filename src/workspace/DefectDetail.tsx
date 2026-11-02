@@ -3,7 +3,8 @@ import type { FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Bot, Check, CircleCheck, ClipboardCheck, FileSearch, Plus, Quote } from 'lucide-react';
 import { DefectImage } from '../components/Imagery';
-import { Button, DemoNotice, Field, InvStatus, KindLegend, KindTag, cx, fmtDate, inputCls, useSeo } from '../components/ui';
+import { Button, DemoNotice, Field, InvStatus, KindLegend, KindTag, RoleNote, cx, fmtDate, inputCls, useSeo } from '../components/ui';
+import { ROLE_LABEL } from '../domain/access';
 import { CATEGORY_LABEL, SIMILARITY_GROUPS } from '../data/seed';
 import { suggestionsFor } from '../domain/assist';
 import { MILESTONES, STATUS_LABEL, STATUS_ORDER, canTransition, stageIndex, validateFinding, validateTask } from '../domain/investigation';
@@ -15,7 +16,7 @@ import { PageHeader, Panel } from './WorkspaceLayout';
 
 export default function DefectDetail() {
   const { defectId } = useParams();
-  const { state, openInvestigation } = useStore();
+  const { state, openInvestigation, can } = useStore();
   const defect = state.defects.find((d) => d.id === defectId);
   const [photoIdx, setPhotoIdx] = useState(0);
   useSeo(`${defectId ?? 'Defect'} — Workspace`, 'Demonstration defect investigation with linked job, measurements, specification and timeline.');
@@ -37,7 +38,7 @@ export default function DefectDetail() {
       <PageHeader
         title={`${defect.id} · ${CATEGORY_LABEL[defect.category]}`}
         subtitle={`${defect.location} · inspected ${fmtDate(defect.inspectionDate)} · severity ${defect.severity}`}
-        actions={inv ? <InvStatus status={inv.status} /> : <Button onClick={() => openInvestigation(defect.id)}><FileSearch size={15} /> Open investigation</Button>}
+        actions={inv ? <InvStatus status={inv.status} /> : <Button disabled={!can('open')} title={can('open') ? undefined : 'Your role cannot open investigations'} onClick={() => openInvestigation(defect.id)}><FileSearch size={15} /> Open investigation</Button>}
       />
       <DemoNotice className="mb-4" />
       <div className="mb-6"><KindLegend /></div>
@@ -133,7 +134,7 @@ export default function DefectDetail() {
           ) : (
             <Panel title="Investigation">
               <p className="text-sm text-graphite-500">This observation is not under investigation yet.</p>
-              <Button className="mt-3" onClick={() => openInvestigation(defect.id)}><FileSearch size={15} /> Open investigation</Button>
+              <Button className="mt-3" disabled={!can('open')} onClick={() => openInvestigation(defect.id)}><FileSearch size={15} /> Open investigation</Button>
             </Panel>
           )}
         </div>
@@ -143,7 +144,7 @@ export default function DefectDetail() {
 }
 
 function InvestigationPanel({ inv }: { inv: Investigation }) {
-  const { team, assignInvestigation, setInvestigationStatus, addFinding, addTask, toggleTask, reviewEvidence } = useStore();
+  const { team, assignInvestigation, setInvestigationStatus, addFinding, addTask, toggleTask, reviewEvidence, can, role } = useStore();
   const [finding, setFinding] = useState('');
   const [findingErr, setFindingErr] = useState<string | null>(null);
   const [task, setTask] = useState({ title: '', assigneeId: '', due: '' });
@@ -208,21 +209,21 @@ function InvestigationPanel({ inv }: { inv: Investigation }) {
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div>
             <label htmlFor={`assign-${inv.id}`} className="text-[11px] text-graphite-500">Investigator</label>
-            <select id={`assign-${inv.id}`} className={cx(inputCls, 'mt-1')} value={inv.investigatorId ?? ''} onChange={(e) => e.target.value && assignInvestigation(inv.id, e.target.value)}>
+            <select id={`assign-${inv.id}`} disabled={!can('assign')} className={cx(inputCls, 'mt-1 disabled:cursor-not-allowed disabled:opacity-60')} value={inv.investigatorId ?? ''} onChange={(e) => e.target.value && assignInvestigation(inv.id, e.target.value)}>
               <option value="" disabled>Select investigator…</option>
               {team.map((t) => <option key={t.id} value={t.id}>{t.name} — {t.role}</option>)}
             </select>
           </div>
           <div>
             <label htmlFor={`status-${inv.id}`} className="text-[11px] text-graphite-500">Status</label>
-            <select id={`status-${inv.id}`} className={cx(inputCls, 'mt-1')} value={inv.status} onChange={(e) => changeStatus(e.target.value as InvestigationStatus)}>
+            <select id={`status-${inv.id}`} disabled={!can('status')} className={cx(inputCls, 'mt-1 disabled:cursor-not-allowed disabled:opacity-60')} value={inv.status} onChange={(e) => changeStatus(e.target.value as InvestigationStatus)}>
               {STATUS_ORDER.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
             </select>
           </div>
         </div>
         {statusMsg && <p role="alert" className="mt-2 text-xs font-medium text-fault">{statusMsg}</p>}
         {inv.status === 'open' && (
-          <Button variant="secondary" className="mt-3 text-xs" onClick={() => reviewEvidence(inv.id, 'Photographs, job measurements and specification check reviewed.')}>
+          <Button variant="secondary" className="mt-3 text-xs" disabled={!can('evidence')} onClick={() => reviewEvidence(inv.id, 'Photographs, job measurements and specification check reviewed.')}>
             <ClipboardCheck size={14} /> Mark evidence reviewed
           </Button>
         )}
@@ -239,7 +240,9 @@ function InvestigationPanel({ inv }: { inv: Investigation }) {
           {inv.findings.length === 0 && <li className="text-xs text-graphite-500">No confirmed findings yet.</li>}
         </ul>
         {inv.status !== 'closed' && (
-          <form onSubmit={submitFinding} noValidate className="mt-4 space-y-2">
+          <>
+          {!can('finding') && <div className="mt-4"><RoleNote>Acting as {ROLE_LABEL[role].toLowerCase()}: you can read findings but not record them.</RoleNote></div>}
+          <form onSubmit={submitFinding} noValidate className={cx('mt-4 space-y-2', !can('finding') && 'hidden')}>
             <Field label="Add a confirmed finding" htmlFor={`finding-${inv.id}`} error={findingErr ?? undefined} hint="State what was observed or verified. Findings are attributed to you.">
               <textarea
                 id={`finding-${inv.id}`}
@@ -254,6 +257,7 @@ function InvestigationPanel({ inv }: { inv: Investigation }) {
             </Field>
             <Button type="submit"><Plus size={14} /> Add finding</Button>
           </form>
+          </>
         )}
       </Panel>
 
@@ -263,7 +267,7 @@ function InvestigationPanel({ inv }: { inv: Investigation }) {
             const who = team.find((m) => m.id === t.assigneeId);
             return (
               <li key={t.id} className="flex items-start gap-2.5 rounded-md border border-mist-200 p-2.5 text-sm">
-                <input id={`task-${t.id}`} type="checkbox" checked={t.done} onChange={() => toggleTask(inv.id, t.id)} aria-label={`Mark “${t.title}” ${t.done ? 'not done' : 'done'}`} className="mt-1 h-4 w-4 accent-signal-600" />
+                <input id={`task-${t.id}`} type="checkbox" checked={t.done} disabled={!can('task')} onChange={() => toggleTask(inv.id, t.id)} aria-label={`Mark “${t.title}” ${t.done ? 'not done' : 'done'}`} className="mt-1 h-4 w-4 accent-signal-600" />
                 <label htmlFor={`task-${t.id}`} className="flex-1">
                   <span className={cx(t.done && 'text-graphite-400 line-through')}>{t.title}</span>
                   <span className="block text-[11px] text-graphite-500">{who?.name ?? 'Unassigned'} · due {fmtDate(t.due)}</span>
@@ -274,7 +278,7 @@ function InvestigationPanel({ inv }: { inv: Investigation }) {
           {inv.tasks.length === 0 && <li className="text-xs text-graphite-500">No tasks yet.</li>}
         </ul>
         {inv.status !== 'closed' && (
-          <form onSubmit={submitTask} noValidate className="mt-4 grid gap-3 sm:grid-cols-2">
+          <form onSubmit={submitTask} noValidate className={cx('mt-4 grid gap-3 sm:grid-cols-2', !can('task') && 'hidden')}>
             <div className="sm:col-span-2">
               <Field label="Task" htmlFor={`t-title-${inv.id}`} error={taskErr.title}>
                 <input id={`t-title-${inv.id}`} className={inputCls} value={task.title} onChange={(e) => setTask({ ...task, title: e.target.value })} aria-invalid={Boolean(taskErr.title)} placeholder="e.g. Retrieve booth data-logger file" />

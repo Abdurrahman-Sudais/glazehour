@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { FlaskConical, Pencil, Plus, Trash2 } from 'lucide-react';
-import { Button, KindTag, cx, inputCls, useSeo } from '../components/ui';
+import { Button, KindTag, RoleNote, cx, inputCls, useSeo } from '../components/ui';
+import { ROLE_LABEL } from '../domain/access';
 import { uid } from '../domain/investigation';
 import { MEASUREMENT_KEYS, MEASUREMENT_META, describeLimit, evaluateSpecification, parseReading, validateRule } from '../domain/rules';
 import type { Comparator, MeasurementKey, Measurements, SpecRule, Specification } from '../domain/types';
@@ -41,7 +42,8 @@ export default function Specifications() {
 }
 
 function SpecEditor({ spec }: { spec: Specification }) {
-  const { state, upsertRule, removeRule } = useStore();
+  const { state, upsertRule, removeRule, can, role } = useStore();
+  const locked = !can('rules');
   const [editing, setEditing] = useState<SpecRule | null>(null);
   const jobs = state.jobs.filter((j) => j.specificationId === spec.id);
 
@@ -50,9 +52,10 @@ function SpecEditor({ spec }: { spec: Specification }) {
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
       <div className="space-y-6">
-        <Panel title={spec.name} actions={<Button variant="secondary" className="px-2.5 py-1 text-xs" onClick={() => setEditing(blank())}><Plus size={13} /> Add rule</Button>}>
+        <Panel title={spec.name} actions={<Button variant="secondary" className="px-2.5 py-1 text-xs" disabled={locked} onClick={() => setEditing(blank())}><Plus size={13} /> Add rule</Button>}>
           <p className="mb-3 text-[11px] text-graphite-500">{spec.product} · {spec.source}</p>
-          <div className="relative overflow-x-auto">
+          {locked && <div className="mb-3"><RoleNote>Acting as {ROLE_LABEL[role].toLowerCase()}: only the quality lead can edit specification rules.</RoleNote></div>}
+          <fieldset disabled={locked} className="relative min-w-0 overflow-x-auto disabled:opacity-80">
             <table className="w-full min-w-[560px] text-sm">
               <thead className="text-left text-[11px] text-graphite-500">
                 <tr className="border-b border-mist-200">
@@ -82,10 +85,10 @@ function SpecEditor({ spec }: { spec: Specification }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </fieldset>
         </Panel>
 
-        {editing && (
+        {editing && !locked && (
           <RuleForm
             key={editing.id}
             initial={editing}

@@ -143,3 +143,13 @@ export function fmtDate(iso: string) {
   const d = new Date(iso.length === 10 ? `${iso}T00:00:00` : iso);
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
+
+/** Explains why controls are read-only for the acting demo user. */
+export function RoleNote({ children }: { children: ReactNode }) {
+  return (
+    <p role="note" className="flex items-start gap-1.5 rounded-md border border-mist-200 bg-mist-50 px-3 py-2 text-[11.5px] text-graphite-500">
+      <span aria-hidden>🔒</span>
+      <span>{children}</span>
+    </p>
+  );
+}
